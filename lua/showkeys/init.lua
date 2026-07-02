@@ -32,9 +32,46 @@ local function normalize_key(key)
     return nil
   end
 
+  local control_map = {
+    ["\t"] = "TAB",
+    ["\n"] = "C-j",
+    ["\v"] = "C-k",
+    ["\r"] = "CR",
+    ["\27"] = "ESC",
+    ["\127"] = "BS",
+  }
+
+  if control_map[key] then
+    return control_map[key]
+  end
+
+  if key == " " then
+    return "SPC"
+  end
+
   local label = vim.fn.keytrans(key)
   if label == "" then
     return nil
+  end
+
+  local display_map = {
+    ["<Tab>"] = "TAB",
+    ["<NL>"] = "C-j",
+    ["<C-J>"] = "C-j",
+    ["<C-K>"] = "C-k",
+    ["^J"] = "C-j",
+    ["^K"] = "C-k",
+    ["<CR>"] = "CR",
+    ["<Esc>"] = "ESC",
+    ["<Space>"] = "SPC",
+  }
+
+  if display_map[label] then
+    return display_map[label]
+  end
+
+  if label == "Space" or label == "<Space>" then
+    return "SPC"
   end
 
   return label
