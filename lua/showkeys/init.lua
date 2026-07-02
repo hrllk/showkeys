@@ -2,6 +2,7 @@ local M = {}
 
 local defaults = {
   auto_start = false,
+  startup_user_events = {},
   maxkeys = 3,
   show_count = false,
   separator = " ",
@@ -265,6 +266,18 @@ end
 
 function M.should_auto_start()
   return state.opts.auto_start == true
+end
+
+function M.startup()
+  vim.schedule(function()
+    if state.opts.auto_start == true then
+      M.start()
+    end
+
+    for _, pattern in ipairs(state.opts.startup_user_events or {}) do
+      pcall(vim.api.nvim_exec_autocmds, "User", { pattern = pattern })
+    end
+  end)
 end
 
 function M.start()

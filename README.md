@@ -23,6 +23,7 @@ GIF will be added here.
   cmd = { "ShowkeysStart", "ShowkeysStop", "ShowkeysToggle" },
   opts = {
     auto_start = false,
+    startup_user_events = {},
     maxkeys = 3,
     show_count = false,
     separator = " → ",
@@ -39,16 +40,13 @@ config = function(_, opts)
 end,
 ```
 
-### Optional startup auto-toggle
+### Optional startup hooks
 
 ```lua
-vim.api.nvim_create_autocmd("VimEnter", {
-  callback = function()
-    vim.schedule(function()
-      pcall(vim.cmd, "silent! ShowkeysToggle")
-    end)
-  end,
-})
+opts = {
+  auto_start = true,
+  startup_user_events = { "ToggleMyPrompt" },
+}
 ```
 
 ## API
@@ -56,6 +54,7 @@ vim.api.nvim_create_autocmd("VimEnter", {
 ```lua
 require("showkeys").setup({
   auto_start = false,
+  startup_user_events = {},
   maxkeys = 3,
   show_count = false,
   separator = " → ",
