@@ -3,8 +3,7 @@
 Tiny Neovim plugin that shows the most recent keys in a small floating window.
 
 ## Demo
-
-GIF will be added here.
+<img width="1524" height="1848" alt="Screen Recording 2026-07-03 at 12 05 14 AM" src="https://github.com/user-attachments/assets/8c688440-b967-48b6-9d55-3714c031bc18" />
 
 ## Features
 
@@ -19,11 +18,16 @@ GIF will be added here.
 
 ```lua
 {
-  "yourname/showkeys.nvim",
+  "hrllk/showkeys",
+  name = "showkeys.nvim",
+  lazy = false,
   cmd = { "ShowkeysStart", "ShowkeysStop", "ShowkeysToggle" },
+  config = function(_, opts)
+    require("showkeys").setup(opts)
+  end,
   opts = {
-    auto_start = false,
-    startup_user_events = {},
+    auto_start = true,
+    startup_user_events = { "ToggleMyPrompt" },
     maxkeys = 3,
     show_count = false,
     separator = " → ",
@@ -32,12 +36,18 @@ GIF will be added here.
 }
 ```
 
-If your lazy setup does not auto-call `setup()`, add:
+For command-only lazy loading, disable startup hooks:
 
 ```lua
-config = function(_, opts)
-  require("showkeys").setup(opts)
-end,
+{
+  "hrllk/showkeys",
+  name = "showkeys.nvim",
+  cmd = { "ShowkeysStart", "ShowkeysStop", "ShowkeysToggle" },
+  opts = {
+    auto_start = false,
+    startup_user_events = {},
+  },
+}
 ```
 
 ### Optional startup hooks
@@ -53,8 +63,8 @@ opts = {
 
 ```lua
 require("showkeys").setup({
-  auto_start = false,
-  startup_user_events = {},
+  auto_start = true,
+  startup_user_events = { "ToggleMyPrompt" },
   maxkeys = 3,
   show_count = false,
   separator = " → ",
