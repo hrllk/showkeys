@@ -22,6 +22,7 @@ GIF will be added here.
   "yourname/showkeys.nvim",
   cmd = { "ShowkeysStart", "ShowkeysStop", "ShowkeysToggle" },
   opts = {
+    auto_start = false,
     maxkeys = 3,
     show_count = false,
     separator = " → ",
@@ -54,6 +55,7 @@ vim.api.nvim_create_autocmd("VimEnter", {
 
 ```lua
 require("showkeys").setup({
+  auto_start = false,
   maxkeys = 3,
   show_count = false,
   separator = " → ",

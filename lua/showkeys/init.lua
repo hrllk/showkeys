@@ -1,6 +1,7 @@
 local M = {}
 
 local defaults = {
+  auto_start = false,
   maxkeys = 3,
   show_count = false,
   separator = " ",
@@ -32,6 +33,8 @@ local function normalize_key(key)
     return nil
   end
 
+  local decoded = vim.keycode(key) or key
+
   local control_map = {
     ["\t"] = "TAB",
     ["\n"] = "C-j",
@@ -41,16 +44,20 @@ local function normalize_key(key)
     ["\127"] = "BS",
   }
 
-  if control_map[key] then
-    return control_map[key]
+  if control_map[decoded] then
+    return control_map[decoded]
   end
 
-  if key == " " then
-    return "SPC"
+  if decoded == " " then
+    return "Space"
   end
 
-  local label = vim.fn.keytrans(key)
+  local label = vim.fn.keytrans(decoded)
   if label == "" then
+    return nil
+  end
+
+  if label:find("<80>", 1, true) or label:match("^<t_.->") then
     return nil
   end
 
@@ -59,11 +66,12 @@ local function normalize_key(key)
     ["<NL>"] = "C-j",
     ["<C-J>"] = "C-j",
     ["<C-K>"] = "C-k",
+    ["<C-L>"] = "C-l",
     ["^J"] = "C-j",
     ["^K"] = "C-k",
     ["<CR>"] = "CR",
     ["<Esc>"] = "ESC",
-    ["<Space>"] = "SPC",
+    ["<Space>"] = "Space",
   }
 
   if display_map[label] then
@@ -71,10 +79,47 @@ local function normalize_key(key)
   end
 
   if label == "Space" or label == "<Space>" then
-    return "SPC"
+    return "Space"
   end
 
   return label
+end
+
+local function normalize_keys(keys)
+  local translated = vim.fn.keytrans(keys)
+  if translated == "" then
+    return {}
+  end
+
+  if translated:find("<80>", 1, true) or translated:match("^<t_.->") then
+    return {}
+  end
+
+  local labels = {}
+  local index = 1
+  while index <= #translated do
+    local token
+    if translated:sub(index, index) == "<" then
+      local close = translated:find(">", index, true)
+      if close then
+        token = translated:sub(index, close)
+        index = close + 1
+      else
+        token = translated:sub(index, index)
+        index = index + 1
+      end
+    else
+      token = translated:sub(index, index)
+      index = index + 1
+    end
+
+    local label = normalize_key(token)
+    if label then
+      table.insert(labels, label)
+    end
+  end
+
+  return labels
 end
 
 local function trim_history()
@@ -195,23 +240,31 @@ local function render()
   reset_timer()
 end
 
-local function on_key(key)
+local function on_key(_, typed)
   if not state.running then
     return
   end
 
-  local label = normalize_key(key)
-  if not label then
+  if not typed or typed == "" then
     return
   end
 
-  table.insert(state.history, label)
+  local labels = normalize_keys(typed)
+  if #labels == 0 then
+    return
+  end
+
+  vim.list_extend(state.history, labels)
   trim_history()
   vim.schedule(render)
 end
 
 function M.setup(opts)
   state.opts = vim.tbl_deep_extend("force", vim.deepcopy(defaults), opts or {})
+end
+
+function M.should_auto_start()
+  return state.opts.auto_start == true
 end
 
 function M.start()
@@ -226,7 +279,6 @@ function M.start()
   state.running = true
   state.history = {}
   vim.on_key(on_key, state.ns)
-  render()
 end
 
 function M.stop()

@@ -22,5 +22,9 @@ end, {})
 vim.api.nvim_create_autocmd("VimEnter", {
   group = group,
   once = true,
-  callback = showkeys.start,
+  callback = function()
+    if showkeys.should_auto_start() then
+      showkeys.start()
+    end
+  end,
 })
